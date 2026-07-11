@@ -1,0 +1,1 @@
+export { CornerAccent } from './CornerAccent';

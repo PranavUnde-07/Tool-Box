@@ -1,0 +1,139 @@
+.file-preview {
+  background-color: var(--color-bg-secondary);
+  border: var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+/* --- Image Preview --- */
+.file-preview__image-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0eeeb;
+  min-height: 200px;
+  max-height: 400px;
+  overflow: hidden;
+}
+
+.file-preview__image {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+}
+
+/* --- Info Bar --- */
+.file-preview__info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-top: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.file-preview__info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.file-preview__info-value {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.file-preview__info-divider {
+  width: 1px;
+  height: 12px;
+  background-color: rgba(17, 17, 17, 0.1);
+}
+
+/* --- PDF Preview Placeholder --- */
+.file-preview__pdf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5) var(--space-4);
+  gap: var(--space-2);
+}
+
+.file-preview__pdf-icon {
+  color: var(--color-accent);
+  opacity: 0.6;
+}
+
+.file-preview__pdf-name {
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-primary);
+  text-align: center;
+  word-break: break-all;
+}
+
+.file-preview__pdf-meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* --- Multi-file Grid --- */
+.file-preview__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-1);
+  padding: var(--space-2);
+}
+
+.file-preview__grid-item {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--radius-sm);
+}
+
+.file-preview__grid-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.file-preview__grid-index {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-text-primary);
+  color: var(--color-bg-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  font-weight: var(--weight-bold);
+  border-radius: 2px;
+}
+
+@media (max-width: 768px) {
+  .file-preview__info {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .file-preview__info-divider {
+    display: none;
+  }
+
+  .file-preview__grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+}

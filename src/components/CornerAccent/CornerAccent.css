@@ -1,0 +1,38 @@
+.corner-accent {
+  position: relative;
+}
+
+.corner-accent::before,
+.corner-accent::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--color-border);
+  border-style: solid;
+  opacity: 0.25;
+  transition: opacity var(--transition);
+}
+
+.corner-accent::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+.corner-accent::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+.corner-accent:hover::before,
+.corner-accent:hover::after {
+  opacity: 0.5;
+}
+
+/* --- Accent color variant --- */
+.corner-accent--accent::before,
+.corner-accent--accent::after {
+  border-color: var(--color-accent);
+}

@@ -1,0 +1,32 @@
+.section {
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-6);
+}
+
+.section--sm {
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+
+.section--lg {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-8);
+}
+
+.section__header {
+  margin-bottom: var(--space-4);
+}
+
+.section__title {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.section__subtitle {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}

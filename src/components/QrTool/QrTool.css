@@ -1,0 +1,107 @@
+.qr-tool {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* --- Input Section --- */
+.qr-tool__input-section {
+  background-color: var(--color-bg-secondary);
+  border: var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+
+.qr-tool__input-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+  display: block;
+}
+
+.qr-tool__input {
+  width: 100%;
+  padding: 12px var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  border: var(--border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition);
+  resize: vertical;
+  min-height: 80px;
+}
+
+.qr-tool__input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.qr-tool__input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* --- Preview Section --- */
+.qr-tool__preview-section {
+  background-color: var(--color-bg-secondary);
+  border: var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.qr-tool__canvas-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  background-color: #FFFFFF;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: var(--radius-sm);
+}
+
+.qr-tool__canvas {
+  display: block;
+}
+
+.qr-tool__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  color: var(--color-text-muted);
+}
+
+.qr-tool__placeholder-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* --- Settings & Download Row --- */
+.qr-tool__controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.qr-tool__actions {
+  display: flex;
+  gap: var(--space-1);
+  justify-content: flex-start;
+}
+
+@media (max-width: 768px) {
+  .qr-tool__controls {
+    grid-template-columns: 1fr;
+  }
+}

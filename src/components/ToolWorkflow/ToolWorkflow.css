@@ -1,0 +1,33 @@
+.tool-workflow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.tool-workflow__action {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* --- Empty Explanation --- */
+.tool-workflow__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-2) 0;
+  gap: var(--space-1);
+}
+
+.tool-workflow__empty-icon {
+  color: var(--color-text-muted);
+  opacity: 0.4;
+}
+
+.tool-workflow__empty-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  max-width: 400px;
+  line-height: var(--leading-relaxed);
+}
