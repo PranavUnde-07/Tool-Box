@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router';
 import { DashboardLayout } from '../../layouts/DashboardLayout';
 import { Hero } from '../../components/Hero';
 import { ToolCard } from '../../components/ToolCard';
@@ -7,9 +8,23 @@ import { tools } from '../../config/tools';
 import type { ToolCategory } from '../../types';
 import './HomePage.css';
 
+const VALID_CATEGORIES: ToolCategory[] = ['all', 'image', 'pdf', 'qr', 'video', 'audio', 'utility'];
+
 export function HomePage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchValue, setSearchValue] = useState('');
-  const [activeCategory, setActiveCategory] = useState<ToolCategory>('all');
+  const categoryParam = searchParams.get('category') as ToolCategory | null;
+  const activeCategory: ToolCategory =
+    categoryParam && VALID_CATEGORIES.includes(categoryParam) ? categoryParam : 'all';
+
+  // Keep the URL in sync when the dashboard's own filter is used
+  const handleCategoryChange = (category: ToolCategory) => {
+    setSearchParams(category === 'all' ? {} : { category }, { replace: true });
+  };
+
+  useEffect(() => {
+    document.title = 'ToolBox — Privacy-first Local File Toolkit';
+  }, []);
 
   const filteredTools = useMemo(() => {
     return tools.filter((tool) => {
@@ -30,7 +45,7 @@ export function HomePage() {
       searchValue={searchValue}
       onSearchChange={setSearchValue}
       activeCategory={activeCategory}
-      onCategoryChange={setActiveCategory}
+      onCategoryChange={handleCategoryChange}
     >
       <Hero />
 

@@ -45,8 +45,6 @@ export interface CategoryOption {
 export type ProcessingStatus =
   | 'idle'
   | 'uploading'
-  | 'validating'
-  | 'preparing'
   | 'processing'
   | 'completed'
   | 'failed';

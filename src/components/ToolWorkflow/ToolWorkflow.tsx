@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Zap } from 'lucide-react';
-import * as Icons from 'lucide-react';
+import { getToolIcon } from '../../config/toolIcons';
 import { useToolStore } from '../../store';
 import { FileUploader } from '../FileUploader';
 import { FilePreview } from '../FilePreview';
@@ -16,25 +16,27 @@ interface ToolWorkflowProps {
 }
 
 export function ToolWorkflow({ tool }: ToolWorkflowProps) {
-  const { files, status, initSettings, startProcessing, reset } = useToolStore();
+  const { files, status, initSettings, setActiveTool, startProcessing, reset } = useToolStore();
 
   useEffect(() => {
     reset();
+    setActiveTool(tool.id);
     if (tool.settings) {
       initSettings(tool.settings);
     }
     return () => {
       reset();
+      setActiveTool(null);
     };
-  }, [tool.id]);
+  }, [tool.id, tool.settings, reset, setActiveTool, initSettings]);
 
   const hasFiles = files.length > 0;
   const isIdle = status === 'idle';
-  const isProcessing = ['uploading', 'validating', 'preparing', 'processing'].includes(status);
+  const isProcessing = status === 'uploading' || status === 'processing';
   const isCompleted = status === 'completed';
   const isFailed = status === 'failed';
 
-  const IconComponent = Icons[tool.icon as keyof typeof Icons] as React.ComponentType<{ size?: number }>;
+  const IconComponent = getToolIcon(tool.icon);
 
   return (
     <div className="tool-workflow">

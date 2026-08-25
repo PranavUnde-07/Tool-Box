@@ -7,8 +7,6 @@ import './ProcessingStatus.css';
 const statusLabels: Record<ProcessingStatusType, string> = {
   idle: 'Ready',
   uploading: 'Uploading...',
-  validating: 'Validating...',
-  preparing: 'Preparing...',
   processing: 'Processing...',
   completed: 'Completed',
   failed: 'Failed',
@@ -19,7 +17,7 @@ export function ProcessingStatus() {
 
   if (status === 'idle') return null;
 
-  const isActive = ['uploading', 'validating', 'preparing', 'processing'].includes(status);
+  const isActive = status === 'uploading' || status === 'processing';
   const isFailed = status === 'failed';
   const isCompleted = status === 'completed';
 

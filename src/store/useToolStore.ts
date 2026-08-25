@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { processFiles } from '../services/toolApi';
+import { extractApiError } from '../services/apiClient';
 import type { UploadedFile, ProcessingResult, ProcessingStatus, ToolSettingField } from '../types';
 
 interface ToolStoreState {
@@ -8,7 +10,8 @@ interface ToolStoreState {
   error: string | null;
   result: ProcessingResult | null;
   settings: Record<string, string | number | boolean>;
-  processingTimer: ReturnType<typeof setTimeout> | null;
+  activeToolId: string | null;
+  abortController: AbortController | null;
 }
 
 interface ToolStoreActions {
@@ -18,8 +21,9 @@ interface ToolStoreActions {
   clearFiles: () => void;
   reorderFiles: (fromIndex: number, toIndex: number) => void;
   initSettings: (fields: ToolSettingField[]) => void;
+  setActiveTool: (toolId: string | null) => void;
   updateSetting: (id: string, value: string | number | boolean) => void;
-  startProcessing: () => void;
+  startProcessing: () => Promise<void>;
   cancelProcessing: () => void;
   retryProcessing: () => void;
   reset: () => void;
@@ -43,21 +47,16 @@ function createFilePreview(file: File): Promise<UploadedFile> {
     };
 
     if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const url = e.target?.result as string;
-        uploaded.preview = url;
+      const url = URL.createObjectURL(file);
+      uploaded.preview = url;
 
-        const img = new window.Image();
-        img.onload = () => {
-          uploaded.dimensions = { width: img.width, height: img.height };
-          resolve(uploaded);
-        };
-        img.onerror = () => resolve(uploaded);
-        img.src = url;
+      const img = new window.Image();
+      img.onload = () => {
+        uploaded.dimensions = { width: img.width, height: img.height };
+        resolve(uploaded);
       };
-      reader.onerror = () => resolve(uploaded);
-      reader.readAsDataURL(file);
+      img.onerror = () => resolve(uploaded);
+      img.src = url;
     } else {
       resolve(uploaded);
     }
@@ -71,8 +70,16 @@ const initialState: ToolStoreState = {
   error: null,
   result: null,
   settings: {},
-  processingTimer: null,
+  activeToolId: null,
+  abortController: null,
 };
+
+/** Release object-URL previews to avoid memory leaks. */
+function revokePreviews(files: UploadedFile[]): void {
+  for (const f of files) {
+    if (f.preview) URL.revokeObjectURL(f.preview);
+  }
+}
 
 export const useToolStore = create<ToolStore>((set, get) => ({
   ...initialState,
@@ -118,10 +125,8 @@ export const useToolStore = create<ToolStore>((set, get) => ({
 
   clearFiles: () => {
     const { files } = get();
-    files.forEach((f) => {
-      if (f.preview) URL.revokeObjectURL(f.preview);
-    });
-    set({ files: [], result: null, status: 'idle', error: null });
+    revokePreviews(files);
+    set({ files: [], result: null, status: 'idle', error: null, progress: 0 });
   },
 
   reorderFiles: (fromIndex: number, toIndex: number) => {
@@ -141,81 +146,98 @@ export const useToolStore = create<ToolStore>((set, get) => ({
     set({ settings });
   },
 
+  setActiveTool: (toolId: string | null) => {
+    set({ activeToolId: toolId });
+  },
+
   updateSetting: (id: string, value: string | number | boolean) => {
     set((state) => ({
       settings: { ...state.settings, [id]: value },
     }));
   },
 
-  startProcessing: () => {
-    const { files } = get();
-    if (files.length === 0) return;
+  startProcessing: async () => {
+    const { files, activeToolId, status, abortController } = get();
+    if (files.length === 0 || !activeToolId) return;
+    if (status === 'uploading' || status === 'processing') return;
 
-    set({ status: 'uploading', progress: 0, error: null, result: null });
+    abortController?.abort();
+    const controller = new AbortController();
 
-    const stages: { status: ProcessingStatus; duration: number; progress: number }[] = [
-      { status: 'uploading', duration: 300, progress: 10 },
-      { status: 'validating', duration: 400, progress: 25 },
-      { status: 'preparing', duration: 300, progress: 40 },
-      { status: 'processing', duration: 800, progress: 70 },
-      { status: 'processing', duration: 600, progress: 90 },
-      { status: 'completed', duration: 200, progress: 100 },
-    ];
-
-    let elapsed = 0;
-    const timers: ReturnType<typeof setTimeout>[] = [];
-
-    stages.forEach((stage) => {
-      elapsed += stage.duration;
-      const timer = setTimeout(() => {
-        const currentState = get();
-        if (currentState.status === 'idle') return;
-
-        if (stage.status === 'completed') {
-          const totalSize = currentState.files.reduce((sum, f) => sum + f.size, 0);
-          const savings = Math.floor(Math.random() * 30) + 10;
-          const resultSize = Math.floor(totalSize * (1 - savings / 100));
-
-          set({
-            status: 'completed',
-            progress: 100,
-            result: {
-              fileName: currentState.files[0].name.replace(/\.[^.]+$/, '_processed.png'),
-              fileSize: resultSize,
-              originalSize: totalSize,
-              savings,
-              blob: new Blob(['simulated-output'], { type: 'application/octet-stream' }),
-            },
-          });
-        } else {
-          set({ status: stage.status, progress: stage.progress });
-        }
-      }, elapsed);
-      timers.push(timer);
+    set({
+      status: 'uploading',
+      progress: 0,
+      error: null,
+      result: null,
+      abortController: controller,
     });
 
-    set({ processingTimer: timers[0] });
+    try {
+      // Phase 1 — upload with real progress
+      const { blob, fileName } = await processFiles({
+        toolId: activeToolId,
+        files: files.map((f) => f.file),
+        settings: get().settings,
+        signal: controller.signal,
+        onUploadProgress: (percent) => {
+          set({ progress: Math.min(80, Math.max(1, Math.round(percent * 0.8))) });
+        },
+      });
+
+      // Upload finished — server is processing
+      if (!controller.signal.aborted) {
+        set({ status: 'processing', progress: 90 });
+      }
+
+      const originalSize = files.reduce((sum, f) => sum + f.size, 0);
+      const savings =
+        originalSize > 0 && blob.size < originalSize
+          ? Math.round(((originalSize - blob.size) / originalSize) * 100)
+          : 0;
+
+      set({
+        status: 'completed',
+        progress: 100,
+        abortController: null,
+        result: {
+          fileName,
+          fileSize: blob.size,
+          originalSize,
+          savings,
+          blob,
+        },
+      });
+    } catch (err) {
+      // Cancelled by the user — silently return to idle
+      if (controller.signal.aborted) {
+        set({ status: 'idle', progress: 0, error: null, abortController: null });
+        return;
+      }
+
+      const message = await extractApiError(err);
+      set({ status: 'failed', error: message, progress: 0, abortController: null });
+    }
   },
 
   cancelProcessing: () => {
+    get().abortController?.abort();
     set({
       status: 'idle',
       progress: 0,
       error: null,
       result: null,
-      processingTimer: null,
+      abortController: null,
     });
   },
 
   retryProcessing: () => {
-    get().startProcessing();
+    void get().startProcessing();
   },
 
   reset: () => {
+    get().abortController?.abort();
     const { files } = get();
-    files.forEach((f) => {
-      if (f.preview) URL.revokeObjectURL(f.preview);
-    });
+    revokePreviews(files);
     set({ ...initialState });
   },
 

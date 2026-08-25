@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import * as Icons from 'lucide-react';
+import { getToolIcon } from '../../config/toolIcons';
 import type { Tool } from '../../types';
 import './ToolCard.css';
 
@@ -11,7 +11,7 @@ interface ToolCardProps {
 }
 
 export function ToolCard({ tool, index }: ToolCardProps) {
-  const IconComponent = Icons[tool.icon as keyof typeof Icons] as React.ComponentType<{ size?: number }>;
+  const IconComponent = getToolIcon(tool.icon);
   const isComingSoon = tool.status === 'coming-soon';
 
   const cardClasses = [

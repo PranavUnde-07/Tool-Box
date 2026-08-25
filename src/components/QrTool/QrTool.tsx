@@ -20,7 +20,7 @@ export function QrTool({ tool }: QrToolProps) {
     if (tool.settings) {
       initSettings(tool.settings);
     }
-  }, [tool.id]);
+  }, [tool.id, tool.settings, initSettings]);
 
   const size = Number(settings.size) || 300;
   const fgColor = String(settings.fgColor || '#111111');
